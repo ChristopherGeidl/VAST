@@ -2,7 +2,7 @@
 
 A new antenna tracker is being built that is larger. This code will be on it.
 
-#### Hardware:
+### Hardware:
 
 - 2 Nema 22 Stepper Motors
 - Azimuth gear ratio: ??? ("Around 150-1")
@@ -12,16 +12,16 @@ A new antenna tracker is being built that is larger. This code will be on it.
 - Antenna Capable of LoRa
 - Turning Ranges: ???
 
-#### Explanation of Azimuth:
+### Explanation of Azimuth:
 
 Azimuth is the angle relative to North (0 degrees).
 
 ![Azimuth](https://www.pveducation.org/sites/default/files/PVCDROM/Properties-of-Sunlight/Images/AZIMUTH.gif)
 
-#### Method for Finding Angles:
+### Method for Finding Angles:
 
-We are given the longitude $(\lambda)$, latitude $(\phi)$, and altitude $(h)$ of both the antenna tracker and the balloon.
-$$ (\lambda_a, \phi_a, h_a), (\lambda_b, \phi_b, h_b) $$  
+We are given the longitude $(\lambda)$, latitude $(\phi)$, and altitude $(h)$ of both the antenna tracker and the balloon.<br>
+$(\lambda_a, \phi_a, h_a), (\lambda_b, \phi_b, h_b)$
 We also know Earth's radius $r = 6378137$ and Earth's eccentricity $e = 0.08181919$  
 *Note: all calculations use units of radians and meters*
 
@@ -36,7 +36,7 @@ $$
 \vec{r} = \begin{bmatrix}
 (X_b - X_a) \\
 (Y_b - Y_a) \\
-(Z_b - Z_a)
+(Z_b - Z_a) \\
 \end{bmatrix}
 $$
 
