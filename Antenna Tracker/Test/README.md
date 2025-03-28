@@ -26,13 +26,13 @@ We also know Earth's radius $R = 6378137$ and Earth's eccentricity $e = 0.081819
 *Note: all calculations use units of radians and meters*
 
 Using the Earth-Centered, Earth-Fixed (ECEF) coordinate system we find: <br>
-![ECEF]J(img/ECEF.png)
+![ECEF](img/ECEF.png)
 
 The relative position is then:  
-![r]J(img/r.png)
+![r](img/r.png)
 
 Now we can use a transformation matrix to convert to the ENU (East, North, Up) frame:
-![ENU]J(img/ENU.png)
+![ENU](img/ENU.png)
 
 Using a line-of-sight geometric check:
-![line-of-site]J(img/line-of-site.png)
+![line-of-site](img/line-of-site.png)
