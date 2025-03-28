@@ -34,5 +34,5 @@ The relative position is then:
 Now we can use a transformation matrix to convert to the ENU (East, North, Up) frame:
 ![ENU](img/ENU.png)
 
-Using a line-of-sight geometric check:
+Using a line-of-sight geometric check: <br>
 ![line-of-site](img/line-of-site.png)
