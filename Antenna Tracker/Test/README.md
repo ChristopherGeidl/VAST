@@ -21,15 +21,17 @@ Azimuth is the angle relative to North (0 degrees).
 ### Method for Finding Angles:
 
 We are given the longitude $(\lambda)$, latitude $(\phi)$, and altitude $(h)$ of both the antenna tracker and the balloon.<br>
-$(\lambda_a, \phi_a, h_a), (\lambda_b, \phi_b, h_b)$
+<center>$(\lambda_a, \phi_a, h_a), (\lambda_b, \phi_b, h_b)$</center><br>
 We also know Earth's radius $r = 6378137$ and Earth's eccentricity $e = 0.08181919$  
 *Note: all calculations use units of radians and meters*
 
-Using the Earth-Centered, Earth-Fixed (ECEF) coordinate system we find:
-$$ N = \frac{r}{\sqrt{1 - (e \sin(\phi))^2}} $$  
-$$ X = (N + h) \cos(\phi) \cos(\lambda) $$  
-$$ Y = (N + h) \cos(\phi) \sin(\lambda) $$  
-$$ Z = (N \cdot (1 - e^2) + h) \sin(\phi) $$  
+Using the Earth-Centered, Earth-Fixed (ECEF) coordinate system we find: <br>
+<center>
+${ N = \frac{r}{\sqrt{1 - (e \sin(\phi))^2}} }$
+${ X = (N + h) \cos(\phi) \cos(\lambda) }$
+${ Y = (N + h) \cos(\phi) \sin(\lambda) }$
+${ Z = (N \cdot (1 - e^2) + h) \sin(\phi) }$
+</center>
 
 The relative position is then:  
 $$ 
