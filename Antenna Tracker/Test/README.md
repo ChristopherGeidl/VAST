@@ -4,7 +4,7 @@ A new antenna tracker is being built that is larger. This code will be on it.
 
 ### Hardware:
 
-- 2 Nema 22 Stepper Motors
+- 2 Nema 23 Stepper Motors
 - Azimuth gear ratio: ??? ("Around 150-1")
 - Elevation gear ratio: ???
 - Microcontroller: ??? (Esp32, RaspberryPi, no one knows)
