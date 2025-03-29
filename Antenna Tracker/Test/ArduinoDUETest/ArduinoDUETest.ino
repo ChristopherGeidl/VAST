@@ -1,5 +1,5 @@
 double R = 6378137; //m Earth's radius
-double e = 0.0818919; //Earth's eccentricity
+double e = 0.08181919; //Earth's eccentricity
 
 struct Location{
   double latitude;
