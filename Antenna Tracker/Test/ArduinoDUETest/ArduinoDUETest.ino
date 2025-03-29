@@ -55,10 +55,23 @@ Angles getAngles(Location ant, Location ball){
   angles.elevation = geometric_horizon_angle - horizon_angle_correction;
   angles.azimuth = rad2deg(atan2(E, N));
 
+  //Correct azimuth to 0-360
+  angles.azimuth += 180;
+  if((angles.azimuth/360) >= 1){
+    angles.azimuth -= 360;
+  }
+
   return angles;
 }
 
 //Run test cases
+int close(double a, double b, int percent){
+  double res = sqrt(sq((a-b)/b)) * 100;
+  if(res >= percent){
+    return 0;
+  }
+  return 1;
+}
 void test(char test_title[], double alat, double along, double aalt, double blat, double blong, double balt, double expected_elevation, double expected_azimuth){
   Serial.println(test_title);
   struct Location ant;
@@ -73,7 +86,7 @@ void test(char test_title[], double alat, double along, double aalt, double blat
   expected.azimuth = expected_azimuth;
   expected.elevation = expected_elevation;
   struct Angles angles = getAngles(ant, ball);
-  if(0){
+  if(close(expected.azimuth, angles.azimuth, 5) && close(expected.elevation, angles.elevation, 5)){
     Serial.println("PASS");
   }else{
     Serial.print("Expected(az,ev): ");
@@ -85,25 +98,26 @@ void test(char test_title[], double alat, double along, double aalt, double blat
     Serial.print(", ");
     Serial.println(angles.elevation);
   }
+  Serial.println();
 }
 
 void setup() {
   Serial.begin(9600);
   delay(1000);
   Serial.println("Hi :)");
-  /*test("Same Location", 90, 0, 0, 90, 0, 0, 0, 0);
+  test("Same Location", 90, 0, 0, 90, 0, 0, 0, 0);//fucky azimuth
   test("Balloon Directly Above", 90, 0, 1000, 90, 0, 0, 90, 0);
   test("Balloon Directly Below (other side of earth)", -90, 0, 1000, 90, 0, 0, -90, 0);
   test("Balloon at Equator Prime Meridian, Antenna at North", 0, 0, 0, 90, 0, 0, -45, 0);
-  test("Balloon at Equator 90E, Antenna at North", 0, 90, 0, 90, 0, 0, -45, 90);
-  test("Balloon at Equator 90W, Antenna at North", 0, -90, 0, 90, 0, 0, -45, 270);
-  test("Balloon 100m away 1000m up", 43.610385, -116.340367, 1000, 43.611345, -116.340319, 0, 84.29, 0);
+  test("Balloon at Equator 90E, Antenna at North", 0, 90, 0, 90, 0, 0, -45, 90);//fucky azimuth
+  test("Balloon at Equator 90W, Antenna at North", 0, -90, 0, 90, 0, 0, -45, 270);//fucky azimuth
+  test("Balloon 100m away 1000m up", 43.610385, -116.340367, 1000, 43.611345, -116.340319, 0, 84.29, 0);//fucky elevation
   test("Balloon 100m away 0m up", 43.610385, -116.340367, 0, 43.611345, -116.340319, 0, 0, 0);
-  test("Balloon 1000m away 1000m up", 43.575709, -116.334336, 1000, 43.583792, -116.334293, 0, 45, 0);
+  test("Balloon 1000m away 1000m up", 43.575709, -116.334336, 1000, 43.583792, -116.334293, 0, 45, 0);//fucky elevation
   test("Balloon 1000m away 0m up", 43.575709, -116.334336, 0, 43.583792, -116.334293, 0, 0, 0);
-  test("Balloon 25000m away, 25000m up", 43.575709, -116.334336, 25000, 43.775270, -116.331695, 0, 45, 0);
+  test("Balloon 25000m away, 25000m up", 43.575709, -116.334336, 25000, 43.775270, -116.331695, 0, 45, 0);//fucky elevation
   test("Balloon 25000m away, 25000m up, antenna 25000m up", 43.575709, -116.334336, 25000, 43.775270, -116.331695, 25000, 0, 0);
-  test("Balloon 25000m away, 25000m up, antenna 12500m up", 43.575709, -116.334336, 25000, 43.775270, -116.331695, 12500, 22.5, 0);*/
+  test("Balloon 25000m away, 25000m up, antenna 12500m up", 43.575709, -116.334336, 25000, 43.775270, -116.331695, 12500, 26.5, 0);//fucky elevation
 }
 
 void loop() {
