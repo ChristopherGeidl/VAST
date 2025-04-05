@@ -49,7 +49,7 @@ Accuracy:
 ### Explanation of Motors
 
 The Stepper.h library is compatiable with the Nema 17 motors but is not capable of microstepping. This is 
-currently okay because 1 motor step results in a fraction of degree of movement for the antenna. Since
+currently okay because 1 motor step results in a fraction of a degree of movement for the antenna. Since
 the above angle method is not that accurate using microsteps would be pointless.<br>
 
 Accuracy:
@@ -59,6 +59,7 @@ Accuracy:
 
 Module on both plane and antenna.
 What are the accuracy of these modules.
+ALTITUDE ACCURACY?
 
 ### Explanation of LoRa
 

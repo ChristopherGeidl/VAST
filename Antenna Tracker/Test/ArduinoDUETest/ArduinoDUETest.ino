@@ -7,7 +7,6 @@ Current Considerations:
 - LoRa what is hz? Ryan?
 - What are the minimum and maximum angles?
 - Do the gears reverse direction?(sign error)? k
-- Is microStepping worth?
 */
 
 #include <Stepper.h>
