@@ -4,13 +4,18 @@ A new antenna tracker is being built that is larger. This code will be on it.
 
 ### Hardware:
 
-- 2 Nema 23 Stepper Motors
-- Azimuth gear ratio: ??? ("Around 150-1")
+- 2 Nema 17 Stepper Motors
+- EASON Stepper Motor Driver TB6600
+- Azimuth gear ratio: 1-0.0067 -> 149.2537-1
 - Elevation gear ratio: ???
-- Microcontroller: ??? (Esp32, RaspberryPi, no one knows)
+- Microcontroller: ELEGO Mega 2560 R3 -> ATMega2560 temp?
 - GPS (on both tracker and balloon)
 - Antenna Capable of LoRa
-- Turning Ranges: ???
+- Azimuth Turning Range: infinite?
+- Elevation Turning Range: ??? 
+
+### Wiring
+## INSERT IMAGE OF WIRES
 
 ### Explanation of Azimuth:
 
@@ -36,3 +41,29 @@ Now we can use a transformation matrix to convert to the ENU (East, North, Up) f
 
 Using a line-of-sight geometric check: <br>
 ![line-of-site](img/line-of-site.png)
+
+Accuracy:
+- In extreme situations where the antenna is very high in the error: ±5°
+- In more normal situations: ±3° (often within ±1°)
+
+### Explanation of Motors
+
+The Stepper.h library is compatiable with the Nema 17 motors but is not capable of microstepping. This is 
+currently okay because 1 motor step results in a fraction of degree of movement for the antenna. Since
+the above angle method is not that accurate using microsteps would be pointless.<br>
+
+Accuracy:
+- Nema 17 Motors have a step accuracy of: ±5% -> ±0.011° 
+
+### Explanation of GPS
+
+Module on both plane and antenna.
+What are the accuracy of these modules.
+
+### Explanation of LoRa
+
+Innacuracy due to time
+
+### Future Improvements
+- Our total accuracy is currently...
+- 

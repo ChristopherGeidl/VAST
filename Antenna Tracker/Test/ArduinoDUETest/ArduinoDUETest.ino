@@ -1,3 +1,18 @@
+/*
+Current Considerations:
+- LoRa are we sending anything? Ryan
+- LoRa what are we receiving? Ryan
+- Motors pin out? k
+- LoRa pin out? k
+- LoRa what is hz? Ryan?
+- What are the minimum and maximum angles?
+- Do the gears reverse direction?(sign error)? k
+- Is microStepping worth?
+*/
+
+#include <Stepper.h>
+#include <LoRa.h>
+
 double R = 6378137; //m Earth's radius
 double e = 0.08181919; //Earth's eccentricity
 
@@ -12,6 +27,22 @@ struct Angles {
   double elevation;
 };
 
+//IS THIS CORRECT?
+int SS_PIN = 10; //LoRa module CS pin
+int RST_PIN = 9; //LoRa module reset pin
+int DIO0_PIN = 2; //LoRa module DIO0 pin (interrupt pin)
+
+//is this correct
+int azimuth_dir_pin = 2;
+int azimuth_step_pin = 3;
+int elevation_dir_pin = 4;
+int elevation_step_pin = 5;
+
+int STEPS = 200;
+
+Stepper azimuth_stepper(STEPS, azimuth_dir_pin, azimuth_step_pin);
+Stepper elevation_stepper(STEPS, elevation_dir_pin, elevation_step_pin);
+
 double deg2rad(double degree){return degree*PI/180.0;}
 double rad2deg(double radian){return radian*180.0/PI;}
 
@@ -23,6 +54,8 @@ Location getAntennaLocation(){
   return a;
 }
 Location getBalloonLocation(){
+  //RECEIVE LORA
+  
   struct Location b;
   b.latitude = 0;
   b.longitude = 0;
@@ -124,6 +157,7 @@ void test(char test_title[], double blat, double blong, double balt, double alat
   test("Balloon 25000m away, 25000m up, antenna 12500m up", 43.575709, -116.334336, 25000, 43.775270, -116.331695, 12500, 26.5, 180);*/
 }
 
+
 struct Location balloon;
 struct Location antenna;
 struct Angles current_angles;
@@ -131,26 +165,40 @@ struct Angles new_angles;
 
 void setup() {
   Serial.begin(9600);
-  antenna = getAntennaLocation();//get antenna location
+
+  LoRa.begin(915E6); //initialize ratio at 915 MHz
+
+  azimuth_stepper.setSpeed(1000); //steps per second
+  elevation_stepper.setSpeed(1000); //steps per second
   //MUST BE SET UP TO FACE NORTH W/ PERPENDICULAR ELEVATION
   current_angles.azimuth = 0;
   current_angles.elevation = 0;
 }
 
-double azimuthGearRatio = 150/1;
+double azimuthGearRatio = 149.2537; //1-0.0067 -> 149.2537-1
 double elevationGearRatio = 150/1;
-double motorDegreeToSteps = 200/360; //(200 steps per revolution)/(360 degrees per revolution)
+double elevationMaxAngle = 90;//???
+double elevationMinAngle = 0;//???
+double motorDegreeToSteps = 360/200; //(360 degrees per revolution)/(200 steps per revolution)
 
 void loop() {
+  antenna = getAntennaLocation();//get antenna location
   balloon = getBalloonLocation();//get balloon location
   new_angles = getAngles(antenna, balloon);//find new angles
   //angleChange -> motorSpinChange -> motorSteps (round to int)
   int azimuthChange = round((current_angles.azimuth-new_angles.azimuth) * azimuthGearRatio * motorDegreeToSteps);
+  //elevation gear won't destroy itself
+  if(new_angles.elevation <= elevationMinAngle){
+    new_angles.elevation = elevationMinAngle * elevationGearRatio * motorDegreeToSteps;
+  }else if(new_angles.elevation >= elevationMaxAngle){
+    new_angles.elevation = elevationMaxAngle * elevationGearRatio * motorDegreeToSteps;
+  }
   int elevationChange = round((current_angles.elevation-new_angles.elevation) * elevationGearRatio * motorDegreeToSteps);
   //Move
-  //moveAzimuth(azimuthChange);
-  //moveElevation(elevationChange);
+  azimuth_stepper.step(azimuthChange);
+  elevation_stepper.step(elevationChange);
   //updateState
   current_angles = new_angles;
-  delay(1000);
+
+  delay(10);
 }
