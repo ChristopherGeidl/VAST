@@ -14,7 +14,7 @@ A new antenna tracker is being built that is larger. This code will be on it.
 - Azimuth Turning Range: infinite?
 - Elevation Turning Range: ??? 
 
-### Wiring
+### Wiring:
 ## INSERT IMAGE OF WIRES
 
 ### Explanation of Azimuth:
@@ -65,5 +65,6 @@ What are the accuracy of these modules.
 Innacuracy due to time
 
 ### Future Improvements
+
 - Our total accuracy is currently...
 - 
