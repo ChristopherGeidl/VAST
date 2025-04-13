@@ -8,8 +8,9 @@ A new antenna tracker is being built that is larger. This code will be on it.
 - EASON Stepper Motor Driver TB6600
 - Azimuth gear ratio: 1-0.0067 -> 149.2537-1
 - Elevation gear ratio: ???
-- Microcontroller: ELEGO Mega 2560 R3 -> ATMega2560 temp?
-- GPS (on both tracker and balloon)
+- Microcontroller: ESP32
+- Accelerometer/Magnetometer: MPU6050
+- Tracker GPS: GY-NEO6MV2
 - Antenna Capable of LoRa
 - Azimuth Turning Range: infinite?
 - Elevation Turning Range: ??? 

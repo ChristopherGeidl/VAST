@@ -7,6 +7,7 @@ Current Considerations:
 - LoRa what is hz? Ryan?
 - What are the minimum and maximum angles?
 - Do the gears reverse direction?(sign error)? k
+- LoRa how do you know original angles?
 */
 
 #include <Stepper.h>
@@ -46,6 +47,7 @@ double deg2rad(double degree){return degree*PI/180.0;}
 double rad2deg(double radian){return radian*180.0/PI;}
 
 Location getAntennaLocation(){
+  //GET GPS 
   struct Location a;
   a.latitude = 0;
   a.longitude = 0;
@@ -102,6 +104,13 @@ Angles getAngles(Location ant, Location ball){
   double horizon_angle_correction = rad2deg(acos(R / (R + ant.altitude)));
   angles.elevation = geometric_horizon_angle - horizon_angle_correction;
 
+  return angles;
+}
+Angles getOriginalAngles(){
+  //use acceleraometer/magnetometer or whatever??
+  struct Angles angles;
+  angles.azimuth = 0;
+  angles.elevation = 0;
   return angles;
 }
 
