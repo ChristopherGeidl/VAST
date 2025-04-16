@@ -1,12 +1,9 @@
 /*
-#####################################################
-#####################################################
-
-  CODE IS CURRENTLY UNFINISHED AND MESSY
-  -i will try to finish integrating Ryan's code by saturday night
-
-#####################################################
-#####################################################
+Current Considerations:
+- Motors pin out? k ########################################### IMPORTANT
+- LoRa pin out? k
+- What are the minimum and maximum angles?
+- Do the gears reverse direction?(sign error)? k
 */
 
 #include <Arduino.h>
@@ -22,55 +19,45 @@
 #include <Adafruit_MPU6050.h>
 #include <Adafruit_Sensor.h>
 #include <Wire.h>
+#include <Stepper.h>
 
-//antenna 
-//46.729963519513205, -117.01708388641099
-//ballon
-//46.73802679470464, -117.147533986255
+double balloonLat;
+double balloonLong;
+float balloonAlt;
 
-//shack
-//46.73032939284863, -117.0115247558488
-//ballon
-//46.73440900125548, -117.03565166345032
-//dome
-//46.72635185065161, -117.01735499923765
-//walmart
-//46.73440383906368, -117.03598306509241
+double antennaLat;
+double antennaLong;
+float antennaAlt;
 
-//46.737524001312956, -117.1409430634887
+int setangle; //next elevation
+int setheading; //next azimuth
 
-double balloonLat = 46.73440383906368;
-double balloonLong = -117.03598306509241;
-float balloonAlt = .7;
+float angle; //current elevation
+float heading; //current azimuth
 
-double antennaLat = 46.729963519513205;
-double antennaLong = -117.01708388641099;
-float antennaAlt = .7;
-float antennaHeading;
-
-int setangle;
-int setheading;
-
-float angle;
-float heading;
-
+//for delays
 unsigned long previousMillis;
 unsigned long previousMillis1;
-int Stepper_X;
-int Stepper_Y;
 
-double unitCircToAzimith(double unit){
-    //#input MUST be in deg
-    double degrees = 450 - unit;    //#rotate cordinate system 90 deg CCW
-    if(degrees < 0){
-      degrees += 360;
-    }
-        
-    if (degrees > 360){
-      degrees = degrees - 360;
-    }     
-    return degrees;
-}
+//is this correct
+int azimuth_dir_pin = 2;
+int azimuth_step_pin = 3;
+int elevation_dir_pin = 4;
+int elevation_step_pin = 5;
+
+int STEPS = 200;
+
+Stepper azimuth_stepper(STEPS, azimuth_dir_pin, azimuth_step_pin);
+Stepper elevation_stepper(STEPS, elevation_dir_pin, elevation_step_pin);
+double Stepper_X;
+double Stepper_Y;
+
+// Gear ratios for motors
+double azimuthGearRatio = 149.2537;  // Gear ratio for azimuth motor
+double elevationGearRatio = 150 / 1;  // Gear ratio for elevation motor
+double motorDegreeToSteps = 360 / 200; // Degrees per step for stepper motor
+
+
 float RadiansToDegrees(float r){
   return (r*180)/PI;
 }
@@ -203,13 +190,7 @@ typedef struct ControllerData{
 ControllerData espRX;
 
 
-void StepperSend(){
-  int x = map(Stepper_X, -1000, 1000, 24, 1000);
-  int y = map(Stepper_Y, -1000, 1000, 24, 1000);
-  ledcWrite(1, x);
-  ledcWrite(2, y);
-}
-
+//Sends data to RFD900 on ardupilot
 void RFDSend(){
     //update data in the txbuf
     txbuf.trigger_cutdown = espRX.trigger_cutdown;
@@ -225,16 +206,11 @@ void RFDSend(){
     rfd900.send(payload, sizeof(payload));
 
 }
-
-void OnDataSent(const uint8_t *mac_addr, esp_now_send_status_t status) {
-  //Serial.print("\r\nLast Packet Send Status:\t");
-  //Serial.println(status == ESP_NOW_SEND_SUCCESS ? "Delivery Success" : "Delivery Fail");
-
-}
- 
+//Send esp data with ESPNow
 void espNowSend(){
   // Send message via ESP-NOW 
   esp_err_t result = esp_now_send(broadcastAddress, (uint8_t *) &espTX, sizeof(espTX));
+  /* Testing Code
   if (result == ESP_ERR_ESPNOW_NO_MEM) {
     //Serial.println("Sent with success");
     //digitalWrite(2, HIGH);
@@ -245,20 +221,11 @@ void espNowSend(){
     //Serial.println("Error sending the data");
 
   }
+  */
 }
 
-void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
-    memcpy(&espRX, incomingData, sizeof(espRX));
-    if(espRX.mode == 'm'){
-      //StepSendPacket(espRX.x, espRX.y);
-      Stepper_X = espRX.x;
-      Stepper_Y = espRX.y;
-    }
-    
-}
-
-void RFDPacketReceived(const uint8_t* buffer, size_t size)
-{
+//Handles packet received from RFD900 on ardupilot
+void RFDPacketReceived(const uint8_t* buffer, size_t size){
   uint8_t buf[size];
   memcpy(buf, buffer, size);
   uint32_t crc1 = CRC::Calculate(buf, sizeof(myPacket), CRC::CRC_32());
@@ -284,11 +251,7 @@ void RFDPacketReceived(const uint8_t* buffer, size_t size)
   }  
 }
 
-void StepPacketReceived(const uint8_t* buffer, size_t size)
-{
-
-}
-
+//Reads antenna gps and updates antenna latitude, longitude, and altitude
 void read_gps(){
   if(uart1.available() > 0){
     if (gps.encode(uart1.read())){
@@ -302,6 +265,22 @@ void read_gps(){
   }  
 }
 
+//Automatically called when ESPNow Data Received
+void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
+  memcpy(&espRX, incomingData, sizeof(espRX));
+  if(espRX.mode == 'm'){
+    //StepSendPacket(espRX.x, espRX.y);
+    Stepper_X = round(espRX.x);
+    Stepper_Y = round(espRX.y);
+  }
+  
+}
+//Automattically called when ESPNow Data Sent
+void OnDataSent(const uint8_t *mac_addr, esp_now_send_status_t status) {
+//Serial.print("\r\nLast Packet Send Status:\t");
+//Serial.println(status == ESP_NOW_SEND_SUCCESS ? "Delivery Success" : "Delivery Fail");
+}
+//Setsup ESPNow for communication
 void espNowSetup(){
   // Set device as a Wi-Fi Station
  
@@ -329,6 +308,8 @@ void espNowSetup(){
   }
 }
 
+//Adjusts the position based on the magnetometer and acclerometer readings
+//Sends ESPNow and RFD if necessary
 void SensorRead(){
   unsigned long currentMillis1 = millis();
   if (currentMillis1 - previousMillis1 >= 200) {
@@ -368,14 +349,20 @@ void SensorRead(){
   }
 }
 
+//Takes in the difference in actual and desired angles and outputs motor steps
 void MotorControll(){
   if(espRX.mode == 'a'){
     unsigned long currentMillis = millis();
     int movex;
     int movey;
+    //make sure the motor has time to move
     if (currentMillis - previousMillis >= 30) {
       previousMillis = currentMillis;
-      
+
+      //angleChange -> motorSpinChange -> motorSteps (round to int)
+      int movex = round((angle-setangle) * azimuthGearRatio * motorDegreeToSteps);
+
+      //bounds of movement for elevation
       if(setangle > 90){
         setangle = 90;
       }
@@ -383,44 +370,18 @@ void MotorControll(){
         setangle = 10;
       }
 
-      //heading
-      if(heading > setheading){
-        movex = (((heading-setheading)*(heading-setheading)*10)+295);
-        if(movex > 1000){
-          movex = 1000;
-        }
-        if((heading-setheading)> 180){
-          movex = movex*-1;
-        }
-      }
-      else{
-        movex = (((heading-setheading)*(heading-setheading)*-10)-295);
-        if(movex < -1000){
-          movex = -1000;
-        }    
-      }
-
-      //elevation angle
-      if(angle > setangle){
-        movey = (((angle-setangle)*(angle-setangle)*2)+295);
-        if(movey > 1000){
-          movey = 1000;
-        }
-      }
-      else{
-        movey = (((angle-setangle)*(angle-setangle)*-2)-295);
-        if(movey < -1000){
-          movey = -1000;
-        }    
-      }
+      int movey = round((angle-setangle) * elevationGearRatio * motorDegreeToSteps);
       
       //StepSendPacket(movex, movey);
       Stepper_X = movex;
       Stepper_Y = movey;
-      
     }
   }
-  
+}
+//Takes motor steps and moves motors
+void StepperSend(){
+  azimuth_stepper.step(Stepper_X);
+  elevation_stepper.step(Stepper_Y);
 }
 
 void setup() {
@@ -432,11 +393,13 @@ void setup() {
   espNowSetup();
 
   //uart setup
-  ledcSetup(1, 1000, 10);
+  ledcSetup(1, 1000, 10); //################################################## DONT KNOW IF THIS DOES ANYTHING ##############################################
   ledcAttachPin(25, 1);
   ledcSetup(2, 1000, 10);
   ledcAttachPin(26, 2);
 
+  azimuth_stepper.setSpeed(500); //steps per second
+  elevation_stepper.setSpeed(500); //steps per second
 
   //Serial.begin(57600);
 
@@ -485,11 +448,10 @@ void setup() {
   espRX.RunTimer = false;
 }
 
-void loop() {
+void loop() { //########################################################### loop #################################################################
   rfd900.update();
   read_gps();
   SensorRead();
   MotorControll();
   StepperSend();
 }
-
